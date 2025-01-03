@@ -1,34 +1,10 @@
-//=\\ | Task Dicoding
-//*\\ | POST
-//+\\ | 1. Add Book With Complete Data
-//+\\ | 2. Add Book With Finised Reading
-//+\\ | 3. Add Book Without Name
-//+\\ | 4. Add Book With Page Read More Than Page Count
-
-//*\\ | GET
-//+\\ | 1. Get All Book
-//+\\ | 2. Get Detail Book With Correct Id
-//+\\ | 3. Get Detail Finished Book
-//+\\ | 4. Get Detail Book With Invalid Id
-
-//*\\ | PUT
-//+\\ | 1. Update Book With Complete Data
-//+\\ | 2. Update Book Without Name
-//+\\ | 3. Update Book With Page Read More Than Page Count
-//+\\ | 4. Update Book With Invalid Id
-
-//*\\ | DELETE
-//+\\ | 1. Delete Book With Correct Id
-//+\\ | 2. Delete Finished Book
-//+\\ | 3. Delete Book With Invalid Id
-
-
 const { nanoid } = require('nanoid');
 
+// Data storage
 const books = [];
 
 const routes = [
-  //+ Route 1: Menambahkan Buku
+  // Route 1: Menyimpan buku
   {
     method: 'POST',
     path: '/books',
@@ -49,7 +25,7 @@ const routes = [
           status: 'fail',
           message: 'Gagal menambahkan buku. readPage tidak boleh lebih besar dari pageCount'
         }).code(400);
-      } 
+      }
 
       const id = nanoid(16);
       const insertedAt = new Date().toISOString();
@@ -72,12 +48,31 @@ const routes = [
     },
   },
 
-  //+ Route 2: Mendapatkan semua buku
+  // Route 2: Mendapatkan semua buku dengan query parameters
   {
     method: 'GET',
     path: '/books',
     handler: (request, h) => {
-      const filteredBooks = books.map(book => ({
+      const { name, reading, finished } = request.query;
+      let filteredBooks = books;
+
+      if (name) {
+        filteredBooks = filteredBooks.filter(book => 
+          book.name.toLowerCase().includes(name.toLowerCase())
+        );
+      }
+
+      if (reading !== undefined) {
+        const isReading = reading === '1';
+        filteredBooks = filteredBooks.filter(book => book.reading === isReading);
+      }
+
+      if (finished !== undefined) {
+        const isFinished = finished === '1';
+        filteredBooks = filteredBooks.filter(book => book.finished === isFinished);
+      }
+
+      const responseBooks = filteredBooks.map(book => ({
         id: book.id,
         name: book.name,
         publisher: book.publisher
@@ -86,13 +81,13 @@ const routes = [
       return h.response({
         status: 'success',
         data: {
-          books: filteredBooks,
+          books: responseBooks,
         },
       }).code(200);
     },
   },
 
-  //+ Route 3: Mendapatkan detail buku berdasarkan ID
+  // Route 3: Mendapatkan detail buku berdasarkan ID
   {
     method: 'GET',
     path: '/books/{id}',
@@ -114,7 +109,7 @@ const routes = [
     },
   },
 
-  //+ Route 4: Mengupdate buku berdasarkan ID
+  // Route 4: Mengupdate buku berdasarkan ID
   {
     method: 'PUT',
     path: '/books/{id}',
@@ -161,7 +156,7 @@ const routes = [
     },
   },
 
-  //+ Route 5: Menghapus buku berdasarkan ID
+  // Route 5: Menghapus buku berdasarkan ID
   {
     method: 'DELETE',
     path: '/books/{id}',
@@ -186,3 +181,4 @@ const routes = [
 ];
 
 module.exports = routes;
+  
